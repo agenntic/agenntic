@@ -1,0 +1,45 @@
+{
+  "name": "@agenntic/agenntic",
+  "version": "1.0.0",
+  "description": "A TypeScript framework for building AI agent workflows.",
+  "keywords": [
+    "AI",
+    "agent",
+    "workflow",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agenntic/agenntic.git"
+  },
+  "bugs": {
+    "url": "https://github.com/agenntic/agenntic/issues"
+  },
+  "homepage": "https://github.com/agenntic/agenntic/#readme",
+  "main": "/dist/index.js",
+  "module": "dist/index.js",
+  "types": "/dist/index.d.ts",
+  "files": [
+    "/dist/src"
+  ],
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "conditional-type-checks": "^1.0.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.4",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "^4.61.1"
+  },
+  "scripts": {
+    "test": "jest",
+    "dev": "tsc -w",
+    "build": "tsc",
+    "publish": "npm run test && npm run build && npm publish --access public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
