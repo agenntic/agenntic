@@ -33,8 +33,7 @@ jest.mock("@agenntic/Models/OpenAIModel", () => {
   };
 });
 
-import { LargeLanguageModel } from "@agenntic/Models/LargeLanguageModel";
-import { Agent, Task, Workflow } from "@agenntic/index";
+import { Agent, LargeLanguageModel, Task, Workflow } from "../src";
 
 describe("Agenntic workflows library test suit", () => {
   test("Single agent, single task", async () => {

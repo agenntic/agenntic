@@ -16,11 +16,17 @@
     "url": "https://github.com/agenntic/agenntic/issues"
   },
   "homepage": "https://github.com/agenntic/agenntic/#readme",
-  "main": "/dist/index.js",
+  "main": "dist/index.js",
   "module": "dist/index.js",
-  "types": "/dist/index.d.ts",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
   "files": [
-    "/dist/src"
+    "dist"
   ],
   "devDependencies": {
     "@types/jest": "^29.5.12",
