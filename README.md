@@ -24,13 +24,11 @@ I created Agenntic with several key motivations in mind:
 
 ## Installation
 
-To install the framework, run the following command:
+Run the following command:
 
 ```bash
-npm install agenntic
+npm install @agenntic/agenntic
 ```
-
-Ensure that Node.js is installed.
 
 ## Configuration
 
