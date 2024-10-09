@@ -37,7 +37,7 @@
     "test": "jest",
     "dev": "tsc -w",
     "build": "tsc",
-    "publish": "npm run test && npm run build && npm publish --access public"
+    "publish-package": "npm run test && npm run build && npm publish --access public"
   },
   "engines": {
     "node": ">=14.0.0"
