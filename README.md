@@ -11,6 +11,7 @@ Agenntic is a versatile framework for building agentic workflows using TypeScrip
 - **Type Safety**: TypeScript's powerful type system is used to provide type safety for roles, goals, tasks, and placeholders within workflows.
 - **Modular Design**: The framework is easily extendable with custom LLM implementations. The default implementation uses OpenAI's models, but developers can integrate other models as needed.
 - **Detailed Logging**: Every step of the execution is logged for better traceability and debugging.
+- **Dynamic Data Handling**: Use variables in agent and task definitions to create flexible, reusable workflows.
 
 ## Why Use Agenntic? 🤔
 
@@ -23,7 +24,7 @@ I created Agenntic with several key motivations in mind:
 
 ## Installation
 
-To install the framework, clone the repository and run the following command:
+To install the framework, run the following command:
 
 ```bash
 npm install agenntic
@@ -48,12 +49,12 @@ Replace your_openai_api_key_here with your actual OpenAI API key.
 An agent is responsible for executing tasks. You can define an agent by specifying its role, goal, and background:
 
 ```typescript
-import { Agent } from "@agenntic/Agent";
+import { Agent } from "@agenntic/agenntic";
 
 const agent = new Agent({
-  role: "Content Writer",
-  goal: "Write an article about {topic}",
-  background: "You are an expert in writing engaging content.",
+  role: "Content Writer for {topic}",
+  goal: "Write an engaging article about {topic}",
+  background: "You are an expert in {topic} with years of experience.",
 });
 ```
 
@@ -62,12 +63,12 @@ const agent = new Agent({
 Tasks are the basic units of a workflow. They represent specific pieces of work assigned to an agent.
 
 ```typescript
-import { Task } from "@agenntic/Task";
+import { Task } from "@agenntic/agenntic";
 
 const task = new Task({
   agent: agent,
-  description: "Draft an article on the topic of {topic}",
-  expectedOutput: "An informative article about {topic}.",
+  description: "Draft a {word-count}-word article on the topic of {topic}",
+  expectedOutput: "An informative {word-count}-word article about {topic}.",
 });
 ```
 
@@ -76,14 +77,14 @@ const task = new Task({
 A workflow is a sequence of tasks executed by different agents. You can define dependencies between tasks to ensure proper order of execution.
 
 ```typescript
-import { Workflow } from "@agenntic/Workflow";
+import { Workflow } from "@agenntic/agenntic";
 
 const workflow = new Workflow({
   tasks: [task],
   agents: [agent],
 });
 
-const inputValues = { topic: "Quantum Computing" };
+const inputValues = { topic: "Quantum Computing", "word-count": 1000 };
 workflow
   .initiate({ input: inputValues })
   .then((output) => {
@@ -94,12 +95,77 @@ workflow
   });
 ```
 
+## Using Variables in Workflows
+
+Agenntic allows you to create dynamic workflows by using variables in agent and task definitions. You can set variables by wrapping the variable name in curly braces `{}` in the following fields:
+
+- Agent: `role`, `goal`, `background`
+- Task: `description`, `expectedOutput`
+
+This feature enables you to create flexible, reusable workflows that can adapt to different inputs.
+
+### Best Practices for Variables
+
+- Use lowercase letters and hyphens for variable names (e.g., `{my-variable}`)
+- Choose descriptive names that clearly indicate the variable's purpose
+- Be consistent with naming conventions across your workflow
+- Avoid using spaces or special characters in variable names
+
+Example of good variable usage:
+
+```typescript
+import { Agent, Task, Workflow } from "@agenntic/agenntic";
+
+// Define the agent
+const agent = new Agent({
+  role: "Financial Analyst for {company-name}",
+  goal: "Analyze {financial-report-type} for {fiscal-year}",
+  background: "You are an expert in {industry} financial analysis.",
+});
+
+// Define the task
+const task = new Task({
+  agent: agent,
+  description:
+    "Review {financial-report-type} and prepare a {report-length} summary",
+  expectedOutput:
+    "A comprehensive {report-length} summary of {company-name}'s {financial-report-type} for {fiscal-year}.",
+});
+
+// Create the workflow
+const workflow = new Workflow({
+  tasks: [task],
+  agents: [agent],
+});
+
+// Define the input values
+const inputValues = {
+  "company-name": "TechCorp",
+  "financial-report-type": "annual report",
+  "fiscal-year": "2023",
+  industry: "technology",
+  "report-length": "5-page",
+};
+
+// Initiate the workflow
+workflow
+  .initiate({ input: inputValues })
+  .then((output) => {
+    console.log("Workflow output:", output);
+  })
+  .catch((error) => {
+    console.error("Workflow execution failed:", error);
+  });
+```
+
+By following these practices, you can create clear, maintainable, and reusable workflows that can easily adapt to different scenarios and inputs.
+
 ### Customizing the LLM
 
 By default, the `Agent` uses OpenAI's GPT-4 model, but you can provide a custom implementation:
 
 ```typescript
-import { LargeLanguageModel } from "@agenntic/Models/LargeLanguageModel";
+import { LargeLanguageModel } from "@agenntic/agenntic";
 
 class CustomModel extends LargeLanguageModel {
   async generateResponse(input: string) {
