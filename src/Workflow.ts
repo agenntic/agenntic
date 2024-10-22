@@ -96,31 +96,71 @@ export class Workflow<
     const input = (params as { input: PlaceholderInput<TAgents, TTasks> })
       .input;
 
-    this.logger.info("Workflow initiated.");
+    this.logger.info(`Workflow initiated`, {
+      workflowId: this.id,
+      configuration: {
+        agentCount: this.agents.length,
+        taskCount: this.tasks.length,
+        input,
+      },
+    });
 
     let taskIndex = 0;
     let outputContent = "";
 
     if (input) {
-      this.logger.debug("Input provided:", input);
-
       this.agents.forEach((agent) => {
-        agent.role = fillTemplateString(agent.role, input);
-        agent.background = fillTemplateString(agent.background, input);
-        agent.goal = fillTemplateString(agent.goal, input);
-        this.logger.debug(`Agent updated:`, {
+        const originalState = {
           role: agent.role,
           background: agent.background,
           goal: agent.goal,
+        };
+
+        agent.role = fillTemplateString(agent.role, input);
+        agent.background = fillTemplateString(agent.background, input);
+        agent.goal = fillTemplateString(agent.goal, input);
+
+        this.logger.debug(`Agent template parameters processed`, {
+          workflowId: this.id,
+          agentId: agent.id,
+          updates: {
+            role: {
+              from: originalState.role,
+              to: agent.role,
+            },
+            background: {
+              from: originalState.background,
+              to: agent.background,
+            },
+            goal: {
+              from: originalState.goal,
+              to: agent.goal,
+            },
+          },
         });
       });
       this.tasks.forEach((task) => {
+        const originalState = {
+          description: task.description,
+          expectedOutput: task.expectedOutput,
+        };
+
         task.description = fillTemplateString(task.description, input);
         task.expectedOutput = fillTemplateString(task.expectedOutput, input);
 
-        this.logger.debug(`Task updated:`, {
-          description: task.description,
-          expectedOutput: task.expectedOutput,
+        this.logger.debug(`Task template parameters processed`, {
+          workflowId: this.id,
+          taskId: task.id,
+          updates: {
+            description: {
+              from: originalState.description,
+              to: task.description,
+            },
+            expectedOutput: {
+              from: originalState.expectedOutput,
+              to: task.expectedOutput,
+            },
+          },
         });
       });
     }
@@ -129,9 +169,25 @@ export class Workflow<
     this.startTime = workflowStartTime;
 
     for (const task of this.tasks) {
-      this.logger.info(
-        `Agent ${task.agent.role} starting task: ${task.description}`
-      );
+      this.logger.info(`Task execution started`, {
+        workflowId: this.id,
+        executionProgress: {
+          currentTaskIndex: taskIndex + 1,
+          totalTasks: this.tasks.length,
+          progressPercentage: (
+            ((taskIndex + 1) / this.tasks.length) *
+            100
+          ).toFixed(1),
+        },
+        taskDetails: {
+          id: task.id,
+          description: task.description,
+          agent: {
+            id: task.agent.id,
+            role: task.agent.role,
+          },
+        },
+      });
 
       try {
         let output = await task.execute({
@@ -143,24 +199,29 @@ export class Workflow<
         this.inputTokens += task.inputTokens;
         this.outputTokens += task.outputTokens;
 
-        this.logger.debug(`Task completed`, task);
-        const taskTotalTime = task.totalTime.toFixed(3);
-        this.logger.info(`Task completed in ${taskTotalTime} ms`);
-
         if (taskIndex === this.tasks.length - 1) {
           const workflowEndTime = performance.now();
 
           this.endTime = workflowEndTime;
           this.totalTime = workflowEndTime - workflowStartTime;
 
-          const totalTime = this.totalTime.toFixed(3);
-          this.logger.info(
-            `Workflow completed successfully in ${totalTime} ms.`,
-            {
-              inputTokens: this.inputTokens,
-              outputTokens: this.outputTokens,
-            }
-          );
+          this.logger.info(`Workflow completed successfully`, {
+            workflowId: this.id,
+            finalMetrics: {
+              totalDurationMs: this.totalTime,
+              totalInputTokens: this.inputTokens,
+              totalOutputTokens: this.outputTokens,
+              totalTokens: this.inputTokens + this.outputTokens,
+              averageTokensPerTask: Math.round(
+                (this.inputTokens + this.outputTokens) / this.tasks.length
+              ),
+              averageDurationPerTask: Math.round(
+                this.totalTime / this.tasks.length
+              ),
+            },
+            output: output,
+          });
+
           this.logger.close();
 
           outputContent = output;
@@ -168,10 +229,29 @@ export class Workflow<
           return outputContent;
         }
       } catch (error) {
-        this.logger.error(
-          `Error in task ${task.description}: ${error}`,
-          error instanceof Error ? error : undefined
-        );
+        this.logger.error(`Workflow failed`, undefined, {
+          workflowId: this.id,
+          failurePoint: {
+            taskIndex: taskIndex,
+            taskId: task.id,
+            progressPercentage: ((taskIndex / this.tasks.length) * 100).toFixed(
+              1
+            ),
+          },
+          errorDdetails: {
+            name: error instanceof Error ? error.name : "Unknown",
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          metricsAtFailure: {
+            durationMs: performance.now() - workflowStartTime,
+            totalInputTokens: this.inputTokens,
+            totalOutputTokens: this.outputTokens,
+            completedTasks: taskIndex,
+            remainingTasks: this.tasks.length - taskIndex,
+          },
+        });
+
         this.logger.close();
 
         throw error;
@@ -181,7 +261,23 @@ export class Workflow<
     }
 
     const error = new Error("Workflow failed to complete");
-    this.logger.error("Workflow failed to complete.", error);
+
+    this.logger.error(`Workflow failed unexpectedly`, undefined, {
+      workflowId: this.id,
+      errorDetails: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      },
+      metricsAtFailure: {
+        durationMs: performance.now() - workflowStartTime,
+        totalInputTokens: this.inputTokens,
+        totalOutputTokens: this.outputTokens,
+        completedTasks: taskIndex,
+        remainingTasks: this.tasks.length - taskIndex,
+      },
+    });
+
     this.logger.close();
     throw error;
   }
