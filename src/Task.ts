@@ -76,9 +76,17 @@ export class Task<
     for (let attempt = 0; attempt < DEFAULT_RETRIES; attempt++) {
       try {
         this.retryCount = attempt;
-        logger.info(
-          `Executing task: ${this.description}. Attempt ${attempt + 1}`
-        );
+
+        logger.info(`Task execution attempt`, {
+          taskId: this.id,
+          execution: {
+            attempt: attempt + 1,
+            maxAttempts: DEFAULT_RETRIES,
+            description: this.description,
+            agentId: this.agent.id,
+            agentRole: this.agent.role,
+          },
+        });
 
         const startTime = performance.now();
 
@@ -94,15 +102,44 @@ export class Task<
         this.endTime = endTime;
         this.totalTime = endTime - startTime;
 
-        logger.info(`Task completed in ${this.totalTime.toFixed(3)} ms`);
+        logger.info(`Task completed successfully`, {
+          taskId: this.id,
+          performance: {
+            durationMs: this.totalTime,
+            attemptsUsed: attempt + 1,
+            inputTokens: this.inputTokens,
+            outputTokens: this.outputTokens,
+          },
+          result: {
+            output: result,
+          },
+        });
 
         return result;
       } catch (error) {
-        logger.error(`Task failed: ${error}`);
+        logger.error(`Task execution failed`, undefined, {
+          taskId: this.id,
+          execution: {
+            attempt: attempt + 1,
+            maxAttempts: DEFAULT_RETRIES,
+            remainingAttempts: DEFAULT_RETRIES - (attempt + 1),
+          },
+          errorDetails: {
+            name: error instanceof Error ? error.name : "Unknown",
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+        });
+
         if (attempt < DEFAULT_RETRIES - 1) {
-          logger.warn(
-            `Retrying task "${this.description}". Attempt ${attempt + 1}`
-          );
+          logger.warn(`Retrying failed task`, {
+            taskId: this.id,
+            retry: {
+              attempt: attempt + 1,
+              nextAttempt: attempt + 2,
+              maxAttempts: DEFAULT_RETRIES,
+            },
+          });
         } else {
           throw new Error(
             `Task failed after ${DEFAULT_RETRIES} attempts: ${error}`
@@ -130,7 +167,6 @@ export class Task<
       logger,
     });
 
-    logger.info(`Task output: ${result}`);
     this.output = result;
     return result;
   }
