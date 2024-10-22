@@ -93,25 +93,25 @@ export class Agent<
       this.state = "busy";
       const taskPrompt = this.getTaskPrompt({ task, context });
 
-      logger.debug(
-        `Agent (${this.role}) is executing task: ${task.description}`,
-        {
-          agent: {
-            role: this.role,
-            background: this.background,
-            goal: this.goal,
-            llmModelName: this.llmModel.name,
+      logger.debug(`Agent executing task`, {
+        agentDetails: {
+          id: this.id,
+          role: this.role,
+          background: this.background,
+          goal: this.goal,
+          model: {
+            name: this.llmModel.name,
           },
-          task: {
-            description: task.description,
-            context: task.context,
-            prompt: taskPrompt,
-          },
-        }
-      );
+        },
+        taskDetails: {
+          id: task.id,
+          description: task.description,
+          dependencies: task.dependencyTasks?.map((t) => t.id),
+          extpectedOutput: task.expectedOutput,
+        },
+      });
 
       const modelResponse = await this.llmModel.generateResponse(taskPrompt);
-      logger.debug(`Model response received: `, modelResponse as any);
 
       const response = this.llmModel.modelResponseFormatter(modelResponse);
       // Update the task with the input and output tokens
@@ -119,14 +119,33 @@ export class Agent<
       task.inputTokens = response.inputTokens;
       task.outputTokens = response.outputTokens;
 
-      logger.info(`Task completed: `, response);
+      logger.info(`Task execution completed`, {
+        agentId: this.id,
+        taskId: task.id,
+        taskOutput: response.contentOuput,
+        performance: {
+          inputTokens: response.inputTokens,
+          outputTokens: response.outputTokens,
+          totalTokens: response.inputTokens + response.outputTokens,
+          processingTime: task.totalTime,
+        },
+      });
 
       this.state = "idle";
       return response.contentOuput;
     } catch (error) {
       this.state = "error";
 
-      logger.error(`Error executing task in Agent (${this.role}): ${error}`);
+      logger.error(`Task execution failed`, undefined, {
+        agentId: this.id,
+        taskId: task.id,
+        errorDetails: {
+          name: error instanceof Error ? error.name : "Unknown",
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+      });
+
       throw error;
     }
   }
