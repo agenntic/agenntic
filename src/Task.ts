@@ -93,6 +93,7 @@ export class Task<
             agentId: this.agent.id,
             agentRole: this.agent.role,
             context: this.context,
+            output: this.output,
           },
         });
 
