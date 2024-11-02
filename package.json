@@ -1,6 +1,6 @@
 {
   "name": "@agenntic/agenntic",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A TypeScript framework for building AI agent workflows.",
   "keywords": [
     "AI",
