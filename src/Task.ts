@@ -85,6 +85,7 @@ export class Task<
             description: this.description,
             agentId: this.agent.id,
             agentRole: this.agent.role,
+            context: this.context,
           },
         });
 
