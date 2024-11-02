@@ -107,6 +107,7 @@ export class Agent<
           id: task.id,
           description: task.description,
           dependencies: task.dependencyTasks?.map((t) => t.id),
+          taskPrompt,
           extpectedOutput: task.expectedOutput,
         },
       });
