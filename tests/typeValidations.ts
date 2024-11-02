@@ -8,9 +8,8 @@ import {
   TaskPlaceholders,
   TasksPlaceholders,
   Workflow,
-} from "@agenntic/Workflow";
-import { Agent } from "@agenntic/Agent";
-import { Task } from "@agenntic/Task";
+} from "../src/Workflow";
+import { Agent, Task } from "../src";
 
 // Helper type to check for exact type equality
 type ExactlyExtends<T, U> = (<V>() => V extends T ? 1 : 2) extends <
