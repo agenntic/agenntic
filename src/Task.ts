@@ -12,6 +12,12 @@ interface TaskAttributes<TDescription = string, TExpectedOutput = string> {
   expectedOutput: TExpectedOutput;
   /** Specifies tasks that this task depends on for its execution, providing necessary context. */
   dependencyTasks?: Task[];
+  /**
+   * The context that will be used in the prompt for the task.
+   *
+   * If the task has dependency tasks, the context will be the output of those tasks.
+   */
+  context?: string;
 }
 
 const DEFAULT_RETRIES = 3;
@@ -58,6 +64,7 @@ export class Task<
     this.agent = taskAttributes.agent;
     this.expectedOutput = taskAttributes.expectedOutput;
     this.dependencyTasks = taskAttributes.dependencyTasks;
+    this.context += taskAttributes.context || "";
 
     const uuid = crypto.randomUUID();
     this.id = `tsk-${uuid}`;

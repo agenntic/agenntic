@@ -160,6 +160,41 @@ describe("Agenntic workflows library test suit", () => {
     expect(task["retryCount"]).toBe(2);
   });
 
+  test("Task with explicit context", async () => {
+    const agent = new Agent({
+      role: "Content Writer",
+      goal: "Write an article about {topic}",
+      background: "You are an expert in writing engaging content.",
+    });
+
+    const task = new Task({
+      agent: agent,
+      description: "Draft an introduction on {topic}",
+      expectedOutput: "A well-written introduction about {topic}.",
+      context: "Context for the task",
+    });
+
+    const workflow = new Workflow({
+      tasks: [task],
+      agents: [agent],
+    });
+
+    const inputValues = {
+      topic: "Artificial Intelligence",
+    };
+
+    const output = await workflow.initiate({ input: inputValues });
+
+    expect(output).toBeDefined();
+    expect(output).toContain("Mocked response for input");
+
+    expect(task.output).toBeDefined();
+    expect(task.output).toContain("Mocked response for input");
+
+    expect(typeof task.context).toBe("string");
+    expect(task.context).toBe("Context for the task");
+  });
+
   test("Workflow with no tasks", async () => {
     const agent = new Agent({
       role: "Content Writer",
