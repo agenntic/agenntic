@@ -33,7 +33,7 @@ jest.mock("@agenntic/Models/OpenAIModel", () => {
   };
 });
 
-import { Agent, LargeLanguageModel, Task, Workflow } from "../src";
+import { Agent, LargeLanguageModel, Task, Workflow, JSON } from "../src";
 
 describe("Agenntic workflows library test suit", () => {
   test("Single agent, single task", async () => {
@@ -193,6 +193,44 @@ describe("Agenntic workflows library test suit", () => {
 
     expect(typeof task.context).toBe("string");
     expect(task.context).toBe("Context for the task");
+  });
+
+  test("Task with JSON as expectedOutput", async () => {
+    const actionableExtractorAgent = new Agent({
+      role: "Actionable Extractor",
+      goal: "Extract actionable tasks from meeting transcripts",
+      background:
+        "You are an expert in analyzing transcripts and identifying actionable items.",
+    });
+
+    const expectedOutput = JSON(
+      [
+        {
+          title: "Brief summary of the task",
+          description:
+            "Detailed explanation including any relevant context, deadlines, or specifics.",
+        },
+      ],
+      "An array containing actionable tasks. Each object should have a title and description field."
+    );
+
+    const extractActionablesTask = new Task({
+      agent: actionableExtractorAgent,
+      description: "Analyze the transcript and extract actionable tasks.",
+      expectedOutput: expectedOutput,
+    });
+
+    const workflow = new Workflow({
+      tasks: [extractActionablesTask],
+      agents: [actionableExtractorAgent],
+    });
+
+    const output = await workflow.initiate({});
+
+    expect(output).toBeDefined();
+    // The expected output should be the same as the JSON object provided
+    // The curly braces in the JSON object should be escaped and not treated as placeholders
+    expect(extractActionablesTask.expectedOutput).toBe(expectedOutput);
   });
 
   test("Workflow with no tasks", async () => {

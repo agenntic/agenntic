@@ -6,3 +6,4 @@ export { Task } from "./Task";
 export { Workflow } from "./Workflow";
 export { LargeLanguageModel } from "./Models/LargeLanguageModel";
 export * from "./Models/OpenAIModel";
+export { _JSON as JSON } from "./utils/JSON";
