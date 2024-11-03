@@ -4,7 +4,7 @@ type ExtractPlaceholders<T extends string> =
     : never;
 
 type FormatMap<T extends string> = {
-  [K in ExtractPlaceholders<T>]: string | number;
+  [K in ExtractPlaceholders<T>]?: string | number;
 };
 
 /**
@@ -21,9 +21,19 @@ export default function fillTemplateString<T extends string>(
    */
   values: FormatMap<T>
 ): string {
-  return template.replace(/{(\w+)}/g, (_, key) => {
-    return key in values
-      ? String(values[key as keyof FormatMap<T>])
-      : `{${key}}`;
-  });
+  return (
+    template
+      // Temporarily replace escaped braces with placeholders
+      .replace(/\\{/g, "__LEFT_BRACE__")
+      .replace(/\\}/g, "__RIGHT_BRACE__")
+      // Replace actual placeholders
+      .replace(/{(\w+)}/g, (_, key) => {
+        return key in values
+          ? String(values[key as keyof FormatMap<T>])
+          : `{${key}}`;
+      })
+      // Restore escaped braces
+      .replace(/__LEFT_BRACE__/g, "{")
+      .replace(/__RIGHT_BRACE__/g, "}")
+  );
 }
