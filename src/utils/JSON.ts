@@ -1,4 +1,5 @@
-const JSON_STRING_PREFIX = "A JSON object that follows this structure:\n\n";
+const JSON_STRING_PREFIX =
+  "A JSON object that follows this structure (only return the JSON output without any formatting):\n\n";
 
 export function _JSON(
   value: any,
