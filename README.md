@@ -70,6 +70,65 @@ const task = new Task({
 });
 ```
 
+### Using the JSON Util for expectedOutput
+
+When defining a task in your workflow, you can use the `JSON` function as the value of the `expectedOutput` field. This utility helps to ensure that the expected output is properly structured as a JSON object.
+
+#### Example
+
+Here is an example of how to use the `JSON` util in a task definition:
+
+```typescript
+import {
+  JSON as AgennticJSON,
+  Task,
+  Workflow,
+  Agent,
+} from "@agenntic/agenntic";
+
+const agent = new Agent({
+  name: "Actionable Extractor",
+  description:
+    "You are an expert in analyzing transcripts and identifying actionable items.",
+});
+
+const expectedOutput = AgennticJSON(
+  // An example of the JSON object.
+  [
+    {
+      title: "Brief summary of the task",
+      description:
+        "Detailed explanation including any relevant context, deadlines, or specifics.",
+    },
+  ],
+  // A description of the expected JSON object
+  "An array containing actionable tasks. Each object should have a title and description field."
+);
+
+const transcript = "Your transcript...";
+const task = new Task({
+  agent: actionableExtractorAgent,
+  description: "Analyze the transcript and extract actionable tasks.",
+  expectedOutput: expectedOutput,
+  context: transcript,
+});
+
+const workflow = new Workflow({
+  tasks: [task],
+  agents: [agent],
+});
+
+workflow
+  .initiate({})
+  .then((output) => {
+    console.log("Workflow output:", output);
+    console.log("JSON", JSON.parse(output));
+  })
+  .catch((error) => {
+    console.error("Workflow execution failed:", error);
+  });
+```
+
 ### Create a Workflow
 
 A workflow is a sequence of tasks executed by different agents. You can define dependencies between tasks to ensure proper order of execution.
