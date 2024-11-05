@@ -198,7 +198,7 @@ export class Task<
   toJSON() {
     return {
       id: this.id,
-      agent: this.agent,
+      agent: this.agent.toJSON(),
       context: this.context,
       description: this.description,
       startTime: this.startTime,
