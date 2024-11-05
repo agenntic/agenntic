@@ -50,6 +50,12 @@ export class Task<
    */
   context: string = "";
 
+  /**
+   *  The final prompt that will be passed to the LLM. This field is created by an Agent
+   *  when the workdflow is initiated and is not part of the task definition.
+   */
+  resolvedPrompt?: string;
+
   inputTokens: number = 0;
   outputTokens: number = 0;
 
@@ -202,6 +208,7 @@ export class Task<
       outputTokens: this.outputTokens,
       output: this.output,
       prompt: this.prompt(),
+      resolvedPrompt: this.resolvedPrompt,
     };
   }
 }

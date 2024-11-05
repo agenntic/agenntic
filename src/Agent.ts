@@ -112,6 +112,7 @@ export class Agent<
         },
       });
 
+      task.resolvedPrompt = taskPrompt;
       const modelResponse = await this.llmModel.generateResponse(taskPrompt);
 
       const response = this.llmModel.modelResponseFormatter(modelResponse);
