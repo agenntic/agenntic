@@ -218,6 +218,7 @@ describe("Agenntic workflows library test suit", () => {
       agent: actionableExtractorAgent,
       description: "Analyze the transcript and extract actionable tasks.",
       expectedOutput: expectedOutput,
+      context: "Context for the task",
     });
 
     const workflow = new Workflow({
@@ -226,6 +227,14 @@ describe("Agenntic workflows library test suit", () => {
     });
 
     const output = await workflow.initiate({});
+
+    // The resolved prompt should contain the context for the task
+    expect(extractActionablesTask.resolvedPrompt).toContain(
+      "Context for the task"
+    );
+
+    // The resolved prompt should contain the expected output
+    expect(extractActionablesTask.resolvedPrompt).toContain(expectedOutput);
 
     expect(output).toBeDefined();
     // The expected output should be the same as the JSON object provided
