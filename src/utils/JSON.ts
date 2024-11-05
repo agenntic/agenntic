@@ -1,5 +1,5 @@
 const JSON_STRING_PREFIX =
-  "A JSON object that follows this structure (only return the JSON output without any formatting):\n\n";
+  "A JSON object according to the description below. Do not use code block characters (```) or label it as `json`. Only return the raw JSON response without any extra characters:\n\n";
 
 export function _JSON(
   value: any,
